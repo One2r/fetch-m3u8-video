@@ -15,7 +15,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-var outputFile *File
+var outputFile *os.File
 
 func main() {
 	app := cli.NewApp()
@@ -44,22 +44,23 @@ func main() {
 		}
 		Url := c.String("url")
 
-		tsFp, openErr := os.OpenFile("./Downloads/"+c.String("o"), os.O_CREATE|os.O_WRONLY, 0775)
+		tsFp, openErr := os.OpenFile("./Downloads/"+c.String("o"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0775)
 		if openErr != nil {
 			fmt.Println("open local file", "./Downloads/"+c.String("o"), "failed,", openErr)
 			os.Exit(1)
 		}
 		outputFile = tsFp
-		fmt.Println(tsFp)
-
+		defer outputFile.Close()
+		defer tsFp.Close()
 		fetchM3u8(Url)
+		fmt.Println("Result:", c.String("o"))
 	}
 	fmt.Printf("\n========%s========\n", app.Name)
 	app.Run(os.Args)
 }
 
 func fetchM3u8(Url string) {
-	req := httplib.Get(Url)
+	req := httplib.Get(Url).SetTimeout(60*time.Second*30, 60*time.Second*30)
 	resp, err := req.Response()
 	if err != nil {
 		fmt.Println("fetch video url error,", err)
@@ -89,7 +90,7 @@ func fetchM3u8(Url string) {
 }
 
 func fetchMovie(m3u8Url string) {
-	req := httplib.Get(m3u8Url)
+	req := httplib.Get(m3u8Url).SetTimeout(60*time.Second*30, 60*time.Second*30)
 	resp, respErr := req.Response()
 	if respErr != nil {
 		fmt.Println("fetch m3u8 playlist error,", respErr)
@@ -101,12 +102,6 @@ func fetchMovie(m3u8Url string) {
 		fmt.Println("read m3u8 playlist content error,", readErr)
 		return
 	}
-	videoFolder := fmt.Sprintf("video_%d", time.Now().Unix())
-	mkdErr := os.Mkdir(videoFolder, 0775)
-	if mkdErr != nil {
-		fmt.Println("mkdir for m3u8 playlist failed,", mkdErr)
-		return
-	}
 	m3u8Uri, _ := url.Parse(m3u8Url)
 
 	sReader := strings.NewReader(string(respData))
@@ -116,30 +111,22 @@ func fetchMovie(m3u8Url string) {
 		line := bReader.Text()
 		if !strings.HasPrefix(line, "#") {
 			tsFileName := line
-			tsLocalFileName := fmt.Sprintf("%s/%s", videoFolder, line)
 			tsFileUrl := fmt.Sprintf("%s://%s/%s", m3u8Uri.Scheme, m3u8Uri.Host, tsFileName)
-			downloadTS(tsFileUrl, tsLocalFileName)
+			downloadTS(tsFileUrl)
 		}
 	}
-	fmt.Println("Result:", videoFolder)
 }
 
-func downloadTS(tsFileUrl string, tsLocalFileName string) {
+func downloadTS(tsFileUrl string) {
 	fmt.Println("downloading", tsFileUrl)
-	req := httplib.Get(tsFileUrl)
+	req := httplib.Get(tsFileUrl).SetTimeout(60*time.Second*30, 60*time.Second*30)
 	resp, respErr := req.Response()
 	if respErr != nil {
 		fmt.Println("download ts ", tsFileUrl, "failed,", respErr)
 		return
 	}
 	defer resp.Body.Close()
-	tsFp, openErr := os.OpenFile(tsLocalFileName, os.O_CREATE|os.O_WRONLY, 0775)
-	if openErr != nil {
-		fmt.Println("open local file", tsLocalFileName, "failed,", openErr)
-		return
-	}
-	defer tsFp.Close()
-	_, copyErr := io.Copy(tsFp, resp.Body)
+	_, copyErr := io.Copy(outputFile, resp.Body)
 	if copyErr != nil {
 		fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
 	}
