@@ -71,7 +71,7 @@ func main() {
 }
 
 func fetchM3u8(Url string) {
-	req := httplib.Get(Url).SetTimeout(60*time.Second*30, 60*time.Second*30)
+	req := httplib.Get(Url).SetTimeout(30*time.Second, 30*time.Second)
 	resp, err := req.Response()
 	if err != nil {
 		fmt.Println("fetch video url error,", err)
@@ -88,11 +88,11 @@ func fetchM3u8(Url string) {
 	flashVars := regx.FindString(string(respData))
 	if flashVars != "" {
 		size := len(flashVars)
-		Subm3u8Url, err := url.QueryUnescape(flashVars[16 : size-1])
+		m3u8Url, err := url.QueryUnescape(flashVars[16 : size-1])
 		if err != nil {
 			fmt.Println(err)
 		} else {
-			fetchMovie(Subm3u8Url)
+			fetchMovie(m3u8Url)
 		}
 	} else {
 		fmt.Println("m3u8 playlist not found")
@@ -101,7 +101,7 @@ func fetchM3u8(Url string) {
 }
 
 func fetchMovie(m3u8Url string) {
-	req := httplib.Get(m3u8Url).SetTimeout(60*time.Second*30, 60*time.Second*30)
+	req := httplib.Get(m3u8Url).SetTimeout(30*time.Second, 30*time.Second)
 	resp, respErr := req.Response()
 	if respErr != nil {
 		fmt.Println("fetch m3u8 playlist error,", respErr)
