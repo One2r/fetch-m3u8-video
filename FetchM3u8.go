@@ -34,12 +34,18 @@ func main() {
 		cli.StringFlag{
 			Name:  "url",
 			Value: "",
-			Usage: "m3u8文件url地址",
+			Usage: "m3u8文件url地址,或者是包含m3u8文件地址的普通url地址,通过urltype指定url地址类型",
 		},
+		cli.StringFlag{
+			Name:  "urltype",
+			Value: "url",
+			Usage: "默认为url。\r\nm3u8:  m3u8文件url地址;\r\nurl:  包含m3u8文件地址的普通url地址",
+		},
+
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("url") == "" {
-			fmt.Println("请输入m3u8文件的url地址!")
+			fmt.Println("请输入url地址!")
 			os.Exit(1)
 		}
 		Url := c.String("url")
@@ -52,7 +58,12 @@ func main() {
 		outputFile = tsFp
 		defer outputFile.Close()
 		defer tsFp.Close()
-		fetchM3u8(Url)
+
+		if c.String("urltype") == "m3u8" {
+			fetchMovie(Url)
+		}else{
+			fetchM3u8(Url)
+		}
 		fmt.Println("Result:", c.String("o"))
 	}
 	fmt.Printf("\n========%s========\n", app.Name)
