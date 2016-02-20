@@ -41,7 +41,6 @@ func main() {
 			Value: "url",
 			Usage: "默认为url。\r\nm3u8:  m3u8文件url地址;\r\nurl:  包含m3u8文件地址的普通url地址",
 		},
-
 	}
 	app.Action = func(c *cli.Context) {
 		if c.String("url") == "" {
@@ -61,7 +60,7 @@ func main() {
 
 		if c.String("urltype") == "m3u8" {
 			fetchMovie(Url)
-		}else{
+		} else {
 			fetchM3u8(Url)
 		}
 		fmt.Println("Result:", c.String("o"))
