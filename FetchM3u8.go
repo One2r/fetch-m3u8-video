@@ -15,7 +15,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-var outputFile *os.File
+var outputFile string = ""
 
 func main() {
 	app := cli.NewApp()
@@ -48,16 +48,7 @@ func main() {
 			os.Exit(1)
 		}
 		Url := c.String("url")
-
-		tsFp, openErr := os.OpenFile("./Downloads/"+c.String("o"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0775)
-		if openErr != nil {
-			fmt.Println("open local file", "./Downloads/"+c.String("o"), "failed,", openErr)
-			os.Exit(1)
-		}
-		outputFile = tsFp
-		defer outputFile.Close()
-		defer tsFp.Close()
-
+		outputFile = "./Downloads/" + c.String("o")
 		if c.String("urltype") == "m3u8" {
 			fetchMovie(Url)
 		} else {
@@ -136,8 +127,27 @@ func downloadTS(tsFileUrl string) {
 		return
 	}
 	defer resp.Body.Close()
-	_, copyErr := io.Copy(outputFile, resp.Body)
-	if copyErr != nil {
-		fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
+
+	tsFp, openErr := os.Open(outputFile)
+	defer tsFp.Close()
+	if openErr != nil && os.IsNotExist(openErr) { //输出文件不存在，将第一个视频段作为输出文件
+		fmt.Println("output file ", outputFile, " is not exit...")
+		fmt.Println("create output file ", outputFile, "...")
+
+		opFp, openErr := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0775)
+		if openErr != nil {
+			fmt.Println("open local file", outputFile, "failed,", openErr)
+			return
+		}
+		defer opFp.Close()
+		_, copyErr := io.Copy(opFp, resp.Body)
+		if copyErr != nil {
+			fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
+		}
+
+	} else { //输出文件存在，调研ffmpeg合并视频
+
 	}
+
+	return
 }
