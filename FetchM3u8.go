@@ -108,17 +108,19 @@ func fetchMovie(m3u8Url string) {
 	sReader := strings.NewReader(string(respData))
 	bReader := bufio.NewScanner(sReader)
 	bReader.Split(bufio.ScanLines)
+
 	for bReader.Scan() {
 		line := bReader.Text()
 		if !strings.HasPrefix(line, "#") {
 			tsFileName := line
+			tsLocalFileName := "./Downloads/tmp/"+line
 			tsFileUrl := fmt.Sprintf("%s://%s/%s", m3u8Uri.Scheme, m3u8Uri.Host, tsFileName)
-			downloadTS(tsFileUrl)
+			downloadTS(tsFileUrl,tsLocalFileName)
 		}
 	}
 }
 
-func downloadTS(tsFileUrl string) {
+func downloadTS(tsFileUrl string,tsLocalFileName string) {
 	fmt.Println("downloading", tsFileUrl)
 	req := httplib.Get(tsFileUrl).SetTimeout(60*time.Second*30, 60*time.Second*30)
 	resp, respErr := req.Response()
@@ -127,27 +129,15 @@ func downloadTS(tsFileUrl string) {
 		return
 	}
 	defer resp.Body.Close()
-
-	tsFp, openErr := os.Open(outputFile)
-	defer tsFp.Close()
-	if openErr != nil && os.IsNotExist(openErr) { //输出文件不存在，将第一个视频段作为输出文件
-		fmt.Println("output file ", outputFile, " is not exit...")
-		fmt.Println("create output file ", outputFile, "...")
-
-		opFp, openErr := os.OpenFile(outputFile, os.O_CREATE|os.O_WRONLY, 0775)
-		if openErr != nil {
-			fmt.Println("open local file", outputFile, "failed,", openErr)
-			return
-		}
-		defer opFp.Close()
-		_, copyErr := io.Copy(opFp, resp.Body)
-		if copyErr != nil {
-			fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
-		}
-
-	} else { //输出文件存在，调研ffmpeg合并视频
-
-	}
-
+	tsFp, openErr := os.OpenFile(tsLocalFileName, os.O_CREATE|os.O_WRONLY, 0775)
+    if openErr != nil {
+        fmt.Println("open local file", tsLocalFileName, "failed,", openErr)
+        return
+    }
+    defer tsFp.Close()
+    _, copyErr := io.Copy(tsFp, resp.Body)
+    if copyErr != nil {
+        fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
+    }
 	return
 }
