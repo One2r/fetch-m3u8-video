@@ -7,12 +7,16 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"regexp"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/astaxie/beego/httplib"
 	"github.com/codegangsta/cli"
+
+	"config"
+	"fetch"
 )
 
 var outputFile string = ""
@@ -39,55 +43,42 @@ func main() {
 		cli.StringFlag{
 			Name:  "urltype",
 			Value: "url",
-			Usage: "默认为url。\r\nm3u8:  m3u8文件url地址;\r\nurl:  包含m3u8文件地址的普通url地址",
+			Usage: "url类型，默认为url。m3u8:  m3u8文件url地址;url:  包含m3u8文件地址的普通url地址",
+		},
+		cli.StringFlag{
+			Name:  "phantomjs",
+			Value: "/usr/bin/phantomjs",
+			Usage: "phantomjs可执行文件目录",
 		},
 	}
+
 	app.Action = func(c *cli.Context) {
 		if c.String("url") == "" {
 			fmt.Println("请输入url地址!")
 			os.Exit(1)
 		}
+		if c.String("phantomjs") == "" {
+			fmt.Println("请输入phantomjs可执行文件目录")
+			os.Exit(1)
+		} else {
+			config.Phantomjs = c.String("phantomjs")
+		}
+
+		file, _ := exec.LookPath(os.Args[0])
+		path, _ := filepath.Abs(file)
+		config.LoadPageJS = filepath.Dir(path) + "/loadpage.js"
+
 		Url := c.String("url")
 		outputFile = "./Downloads/" + c.String("o")
 		if c.String("urltype") == "m3u8" {
 			fetchMovie(Url)
 		} else {
-			fetchM3u8(Url)
+			m3u8Url := fetch.GetM3u8Url(Url)
+			fetchMovie(m3u8Url)
 		}
 		fmt.Println("Result:", c.String("o"))
 	}
-	fmt.Printf("\n========%s========\n", app.Name)
 	app.Run(os.Args)
-}
-
-func fetchM3u8(Url string) {
-	req := httplib.Get(Url).SetTimeout(30*time.Second, 30*time.Second)
-	resp, err := req.Response()
-	if err != nil {
-		fmt.Println("fetch video url error,", err)
-		return
-	}
-	defer resp.Body.Close()
-	respData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("read video url content error,", err)
-		return
-	}
-	pattern := `flashvars="list=.*"`
-	regx := regexp.MustCompile(pattern)
-	flashVars := regx.FindString(string(respData))
-	if flashVars != "" {
-		size := len(flashVars)
-		m3u8Url, err := url.QueryUnescape(flashVars[16 : size-1])
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fetchMovie(m3u8Url)
-		}
-	} else {
-		fmt.Println("m3u8 playlist not found")
-		return
-	}
 }
 
 func fetchMovie(m3u8Url string) {
@@ -113,14 +104,14 @@ func fetchMovie(m3u8Url string) {
 		line := bReader.Text()
 		if !strings.HasPrefix(line, "#") {
 			tsFileName := line
-			tsLocalFileName := "./Downloads/tmp/"+line
+			tsLocalFileName := "./Downloads/tmp/" + line
 			tsFileUrl := fmt.Sprintf("%s://%s/%s", m3u8Uri.Scheme, m3u8Uri.Host, tsFileName)
-			downloadTS(tsFileUrl,tsLocalFileName)
+			downloadTS(tsFileUrl, tsLocalFileName)
 		}
 	}
 }
 
-func downloadTS(tsFileUrl string,tsLocalFileName string) {
+func downloadTS(tsFileUrl string, tsLocalFileName string) {
 	fmt.Println("downloading", tsFileUrl)
 	req := httplib.Get(tsFileUrl).SetTimeout(60*time.Second*30, 60*time.Second*30)
 	resp, respErr := req.Response()
@@ -130,14 +121,14 @@ func downloadTS(tsFileUrl string,tsLocalFileName string) {
 	}
 	defer resp.Body.Close()
 	tsFp, openErr := os.OpenFile(tsLocalFileName, os.O_CREATE|os.O_WRONLY, 0775)
-    if openErr != nil {
-        fmt.Println("open local file", tsLocalFileName, "failed,", openErr)
-        return
-    }
-    defer tsFp.Close()
-    _, copyErr := io.Copy(tsFp, resp.Body)
-    if copyErr != nil {
-        fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
-    }
+	if openErr != nil {
+		fmt.Println("open local file", tsLocalFileName, "failed,", openErr)
+		return
+	}
+	defer tsFp.Close()
+	_, copyErr := io.Copy(tsFp, resp.Body)
+	if copyErr != nil {
+		fmt.Println("download ts", tsFileUrl, " failed,", copyErr)
+	}
 	return
 }
