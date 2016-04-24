@@ -7,6 +7,9 @@ Go包依赖：
 github.com/codegangsta/cli  
 github.com/astaxie/beego/httplib
 
+第三方软件依赖：  
+PhantomJS  
+FFmpeg  
 
 #用法  
 开发中......
