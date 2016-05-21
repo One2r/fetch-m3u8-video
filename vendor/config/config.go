@@ -18,3 +18,6 @@ var VList map[string]string
 
 //临时视频目录
 var Tmp string = ""
+
+//ffmpeg合并输入文件地址
+var Ffmpeginputs = ""

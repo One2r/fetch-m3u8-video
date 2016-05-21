@@ -61,6 +61,21 @@ func main() {
 		config.LoadPageJS = filepath.Dir(path) + "/loadpage.js"
 		config.Tmp = filepath.Dir(path) + "/Downloads/tmp/"
 
+		err := os.Mkdir(filepath.Dir(path)+"/Downloads/tmp/", 0755)
+		if err != nil {
+			fmt.Println("创建临时文件目录失败，", err)
+			os.Exit(1)
+		}
+
+		config.Ffmpeginputs = filepath.Dir(path) + "/Downloads/tmp/inputs.txt"
+
+		ffmpegInputs, err := os.Create(config.Ffmpeginputs)
+		defer ffmpegInputs.Close()
+		if err != nil {
+			fmt.Println("创建文件失败,", err)
+			return
+		}
+
 		Url := c.String("url")
 		m3u8Ct := ""
 
@@ -80,6 +95,8 @@ func main() {
 			fmt.Println("获取m3u8文件索引失败！")
 			os.Exit(1)
 		}
+
+		utils.DoClean()
 
 		fmt.Println("Result:", c.String("o"))
 	}
