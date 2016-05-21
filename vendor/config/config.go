@@ -4,8 +4,14 @@ import (
 	"net/url"
 )
 
-//phantomjs可执行文件目录
+//视频输出文件
+var Output string = ""
+
+//phantomjs可执行文件地址
 var Phantomjs string = ""
+
+//ffmpeg可执行文件地址
+var Ffmpeg string = ""
 
 //phantomjs执行js脚本，用于加载普通页面获取m3u8地址
 var LoadPageJS string = ""

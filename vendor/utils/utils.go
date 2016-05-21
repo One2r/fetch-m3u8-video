@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"config"
@@ -34,6 +35,18 @@ func writIntoInputs(filename string) {
 	}
 	defer tsFp.Close()
 	tsFp.WriteString("file '" + filename + "'\r\n")
+}
+
+//合并视频
+func Concat() {
+	cmd := exec.Command(config.Ffmpeg, "-f", "concat", "-i", config.Ffmpeginputs, "-c", "copy", config.Output)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("合并视频失败，", err)
+		return
+	} else {
+		fmt.Println("合并视完成..")
+	}
 }
 
 //清理垃圾文件

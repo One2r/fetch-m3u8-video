@@ -24,7 +24,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "o",
-			Value: "YourVideo",
+			Value: "YourVideo.avi",
 			Usage: "输出文件,默认在Downloads目录下",
 		},
 		cli.StringFlag{
@@ -40,7 +40,12 @@ func main() {
 		cli.StringFlag{
 			Name:  "phantomjs",
 			Value: "/usr/bin/phantomjs",
-			Usage: "phantomjs可执行文件目录",
+			Usage: "phantomjs可执行文件地址",
+		},
+		cli.StringFlag{
+			Name:  "ffmpeg",
+			Value: "/usr/bin/ffmpeg",
+			Usage: "ffmpeg可执行文件地址",
 		},
 	}
 
@@ -50,14 +55,22 @@ func main() {
 			os.Exit(1)
 		}
 		if c.String("phantomjs") == "" {
-			fmt.Println("请输入phantomjs可执行文件目录")
+			fmt.Println("请输入phantomjs可执行文件地址")
 			os.Exit(1)
 		} else {
 			config.Phantomjs = c.String("phantomjs")
 		}
+		if c.String("ffmpeg") == "" {
+			fmt.Println("请输入ffmpeg可执行文件地址")
+			os.Exit(1)
+		} else {
+			config.Ffmpeg = c.String("ffmpeg")
+		}
 
 		file, _ := exec.LookPath(os.Args[0])
 		path, _ := filepath.Abs(file)
+
+		config.Output = filepath.Dir(path) + "/Downloads/" + c.String("o")
 		config.LoadPageJS = filepath.Dir(path) + "/loadpage.js"
 		config.Tmp = filepath.Dir(path) + "/Downloads/tmp/"
 
@@ -96,6 +109,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		utils.Concat()
 		utils.DoClean()
 
 		fmt.Println("Result:", c.String("o"))
