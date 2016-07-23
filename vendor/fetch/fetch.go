@@ -61,7 +61,7 @@ func GetM3u8Content(m3u8Url string) (m3u8 string) {
 }
 
 //视频下载
-func Download(url string, fileName string) {
+func Download(url string, fileName string, ch chan int) {
 	req := httplib.Get(url).SetTimeout(60*time.Second*30, 60*time.Second*30)
 	resp, respErr := req.Response()
 	if respErr != nil {
@@ -79,5 +79,6 @@ func Download(url string, fileName string) {
 	if copyErr != nil {
 		fmt.Println("download ", url, " failed,", copyErr)
 	}
+	ch <- 1
 	return
 }

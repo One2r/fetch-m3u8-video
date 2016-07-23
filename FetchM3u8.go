@@ -101,8 +101,15 @@ func main() {
 
 		if m3u8Ct != "" {
 			utils.ParseM3u8(m3u8Ct)
+			chs := make([]chan int, len(config.VList))
+			i := 0
 			for k, v := range config.VList {
-				fetch.Download(v, config.Tmp+k)
+				chs[i] = make(chan int)
+				go fetch.Download(v, config.Tmp+k, chs[i])
+				i++
+			}
+			for _, ch := range chs {
+				<-ch
 			}
 		} else {
 			fmt.Println("获取m3u8文件索引失败！")
