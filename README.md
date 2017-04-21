@@ -11,8 +11,8 @@ github.com/astaxie/beego/httplib
 PhantomJS  
 FFmpeg  
 
-#用法  
-##指令
+# 用法  
+## 指令
 `-o`  
 输出文件,默认在Downloads目录下，默认"YourVideo.avi"  
 
@@ -34,11 +34,11 @@ show help
 `--version, -v`  
 print the version  
 
-##示例  
+## 示例  
 `./FetchM3u8 --url "http://weibo.com/p/134132432132413241" --phantomjs /home/svr/phantomjs/bin/phantomjs --ffmpeg /home/svr/ffmpeg/bin/ffmpeg`  
 
-#鸣谢
+# 鸣谢
 感谢@jemygraw在Go友团分享的代码，地址：[http://golanghome.com/post/645](http://golanghome.com/post/645)
 
-#许可
+# 许可
 Licensed under the MIT license
