@@ -3,20 +3,17 @@ package fetch
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/url"
-	"os"
 	"os/exec"
 	"regexp"
 	"time"
 
-	"github.com/astaxie/beego/httplib"
+	"github.com/go-resty/resty/v2"
 
-    config "fetch-m3u8-video/internal/configs" 
+	config "fetch-m3u8-video/internal/configs"
 )
 
-//从普通页面获取m3u8地址
+// 从普通页面获取m3u8地址
 func GetM3u8Url(Url string) (m3u8Url string) {
 	cmd := exec.Command(config.Phantomjs, config.LoadPageJS, Url)
 	var out bytes.Buffer
@@ -41,43 +38,27 @@ func GetM3u8Url(Url string) (m3u8Url string) {
 	return m3u8Url
 }
 
-//获取m3u8地址获取视频列表
+// 获取m3u8地址获取视频列表
 func GetM3u8Content(m3u8Url string) (m3u8 string) {
-	req := httplib.Get(m3u8Url).SetTimeout(15*time.Second, 15*time.Second)
-	resp, respErr := req.Response()
+	client := resty.New()
+	client.SetTimeout(15 * time.Second)
+	resp, respErr := client.R().Get(m3u8Url)
 	if respErr != nil {
 		fmt.Println("fetch m3u8 playlist error,", respErr)
 		return
 	}
-	defer resp.Body.Close()
-	respData, readErr := ioutil.ReadAll(resp.Body)
-	if readErr != nil {
-		fmt.Println("read m3u8 playlist content error,", readErr)
-		return
-	} else {
-		m3u8 = string(respData)
-	}
+	m3u8 = resp.String()
 	return m3u8
 }
 
-//视频下载
+// 视频下载
 func Download(url string, fileName string, ch chan int) {
-	req := httplib.Get(url).SetTimeout(60*time.Second*30, 60*time.Second*30)
-	resp, respErr := req.Response()
+	client := resty.New()
+	client.SetTimeout(60 * time.Second * 30)
+	_, respErr := client.R().SetOutput(fileName).Get(url)
 	if respErr != nil {
 		fmt.Println("download ", url, "failed,", respErr)
 		return
-	}
-	defer resp.Body.Close()
-	tsFp, openErr := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0775)
-	if openErr != nil {
-		fmt.Println("open local file", fileName, "failed,", openErr)
-		return
-	}
-	defer tsFp.Close()
-	_, copyErr := io.Copy(tsFp, resp.Body)
-	if copyErr != nil {
-		fmt.Println("download ", url, " failed,", copyErr)
 	}
 	ch <- 1
 	return
