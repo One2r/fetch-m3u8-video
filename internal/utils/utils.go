@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"config"
+    config "fetch-m3u8-video/internal/configs" 
 )
 
 //解析m3u8文件

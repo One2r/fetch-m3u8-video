@@ -6,11 +6,11 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 
-	"config"
-	"fetch"
-	"utils"
+	config "fetch-m3u8-video/internal/configs" 
+	"fetch-m3u8-video/internal/fetch"
+	"fetch-m3u8-video/internal/utils"
 )
 
 func main() {
@@ -70,17 +70,17 @@ func main() {
 		file, _ := exec.LookPath(os.Args[0])
 		path, _ := filepath.Abs(file)
 
-		config.Output = filepath.Dir(path) + "/Downloads/" + c.String("o")
-		config.LoadPageJS = filepath.Dir(path) + "/loadpage.js"
-		config.Tmp = filepath.Dir(path) + "/Downloads/tmp/"
+		config.Output = filepath.Dir(path) + "/downloads/" + c.String("o")
+		config.LoadPageJS = filepath.Dir(path) + "/scripts/loadpage.js"
+		config.Tmp = filepath.Dir(path) + "/downloads/tmp/"
 
-		err := os.Mkdir(filepath.Dir(path)+"/Downloads/tmp/", 0755)
+		err := os.Mkdir(filepath.Dir(path)+"/downloads/tmp/", 0755)
 		if err != nil {
 			fmt.Println("创建临时文件目录失败，", err)
 			os.Exit(1)
 		}
 
-		config.Ffmpeginputs = filepath.Dir(path) + "/Downloads/tmp/inputs.txt"
+		config.Ffmpeginputs = filepath.Dir(path) + "/downloads/tmp/inputs.txt"
 
 		ffmpegInputs, err := os.Create(config.Ffmpeginputs)
 		defer ffmpegInputs.Close()

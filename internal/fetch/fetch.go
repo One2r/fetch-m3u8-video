@@ -13,7 +13,7 @@ import (
 
 	"github.com/astaxie/beego/httplib"
 
-	"config"
+    config "fetch-m3u8-video/internal/configs" 
 )
 
 //从普通页面获取m3u8地址
