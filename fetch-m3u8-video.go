@@ -8,64 +8,48 @@ import (
 
 	"github.com/urfave/cli"
 
-	config "fetch-m3u8-video/internal/configs" 
+	config "fetch-m3u8-video/internal/configs"
 	"fetch-m3u8-video/internal/fetch"
 	"fetch-m3u8-video/internal/utils"
 )
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "Fetch M3u8 Video"
-	app.Usage = "获取m3u8文件索引视频"
-	app.Version = "1.0.0"
+	app.Name = "fetch-m3u8-video"
+	app.Usage = "获取 m3u8 格式视频"
+	app.Version = "2.0.0"
 	app.Author = "One2r"
 	app.Email = "601941036@qq.com"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "o",
-			Value: "YourVideo.avi",
-			Usage: "输出文件,默认在Downloads目录下",
-		},
-		cli.StringFlag{
 			Name:  "url",
 			Value: "",
-			Usage: "m3u8文件url地址,或者是包含m3u8文件地址的普通url地址,通过urltype指定url地址类型",
+			Usage: "m3u8 文件 url 地址,或者是包含 m3u8 地址的普通 url 地址,通过 urltype 指定 url 地址类型",
 		},
 		cli.StringFlag{
 			Name:  "urltype",
 			Value: "url",
-			Usage: "url类型，默认为url。m3u8:  m3u8文件url地址;url:  包含m3u8文件地址的普通url地址",
+			Usage: "url 类型，默认为 url。m3u8:  m3u8文件url地址; url:  包含m3u8文件地址的普通 url 地址",
 		},
-		cli.StringFlag{
-			Name:  "phantomjs",
-			Value: "/usr/bin/phantomjs",
-			Usage: "phantomjs可执行文件地址",
-		},
-		cli.StringFlag{
-			Name:  "ffmpeg",
-			Value: "/usr/bin/ffmpeg",
-			Usage: "ffmpeg可执行文件地址",
+        cli.StringFlag{
+			Name:  "out",
+			Value: "YourVideo.avi",
+			Usage: "输出文件,默认在 downloads 目录下",
 		},
 	}
 
 	app.Action = func(c *cli.Context) {
+		utils.CheckFfmpeg()
+
 		if c.String("url") == "" {
 			fmt.Println("请输入url地址!")
 			os.Exit(1)
 		}
-		if c.String("phantomjs") == "" {
-			fmt.Println("请输入phantomjs可执行文件地址")
-			os.Exit(1)
-		} else {
-			config.Phantomjs = c.String("phantomjs")
-		}
-		if c.String("ffmpeg") == "" {
-			fmt.Println("请输入ffmpeg可执行文件地址")
-			os.Exit(1)
-		} else {
-			config.Ffmpeg = c.String("ffmpeg")
-		}
+
+        if c.String("urltype") == "url" {
+            utils.CheckNodejs()
+        }
 
 		file, _ := exec.LookPath(os.Args[0])
 		path, _ := filepath.Abs(file)

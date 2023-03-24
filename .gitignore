@@ -16,6 +16,10 @@
 
 # Dependency directories (remove the comment below to include it)
 vendor/
+node_modules/
+.cache/
+package.json
+package-lock.json
 
 # Go workspace file
 go.work
@@ -25,4 +29,4 @@ fetch-m3u8-video.unix
 fetch-m3u8-video.arm64
 fetch-m3u8-video.darwin
 fetch-m3u8-video.exe
-.idea
+.idea/
