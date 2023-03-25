@@ -32,7 +32,7 @@ func main() {
 			Value: "url",
 			Usage: "url 类型，默认为 url。m3u8:  m3u8文件url地址; url:  包含m3u8文件地址的普通 url 地址",
 		},
-        cli.StringFlag{
+		cli.StringFlag{
 			Name:  "out",
 			Value: "YourVideo.avi",
 			Usage: "输出文件,默认在 downloads 目录下",
@@ -47,9 +47,9 @@ func main() {
 			return
 		}
 
-        if c.String("urltype") == "url" {
-            utils.CheckNodejs()
-        }
+		if c.String("urltype") == "url" {
+			utils.CheckNodejs()
+		}
 
 		file, _ := exec.LookPath(os.Args[0])
 		path, _ := filepath.Abs(file)
@@ -58,7 +58,7 @@ func main() {
 		config.LoadPageJS = filepath.Dir(path) + "/scripts/loadpage.js"
 		config.Tmp = filepath.Dir(path) + "/downloads/tmp/"
 
-        defer utils.DoClean()
+		defer utils.DoClean()
 
 		err := os.Mkdir(filepath.Dir(path)+"/downloads/tmp/", 0755)
 		if err != nil {
@@ -82,13 +82,13 @@ func main() {
 			m3u8Ct = fetch.GetM3u8Content(Url)
 		} else {
 			m3u8Url := fetch.GetM3u8Url(Url)
-            if m3u8Url == "" {
-                fmt.Println("未获取到 m3u8 地址")
-                return
-            }
+			if m3u8Url == "" {
+				fmt.Println("未获取到 m3u8 地址")
+				return
+			}
 			m3u8Ct = fetch.GetM3u8Content(m3u8Url)
 		}
-        fmt.Println(m3u8Ct)
+		fmt.Println(m3u8Ct)
 		if m3u8Ct != "" {
 			utils.ParseM3u8(m3u8Ct)
 			chs := make([]chan int, len(config.VList))
@@ -107,7 +107,6 @@ func main() {
 		}
 
 		utils.Concat()
-		
 
 		fmt.Println("Result:", c.String("o"))
 	}
