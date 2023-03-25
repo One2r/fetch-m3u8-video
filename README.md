@@ -1,32 +1,35 @@
-# FetchM3u8
-Fetch M3u8 Video 获取m3u8文件索引视频（Go语言版）
+# fetch-m3u8-video
+fetch-m3u8-video 获取 m3u8 格式视频（Go语言版）
 
-Go版本：go1.5.3  
+# 编译
+```
+go mod tidy
+make 
+make build-win
+```
 
-Go包依赖：  
-github.com/codegangsta/cli  
-github.com/astaxie/beego/httplib
-
-第三方软件依赖：  
-PhantomJS  
-FFmpeg  
+# 第三方软件依赖： 
+- FFmpeg
+## 可选依赖
+- upx
+- NodeJS
+- Puppeteer   
 
 # 用法  
 ## 指令
-`-o`  
+`-out`  
 输出文件,默认在Downloads目录下，默认"YourVideo.avi"  
 
 `--url`  
-m3u8文件url地址,或者是包含m3u8文件地址的普通url地址,通过urltype指定url地址类型  
+m3u8 文件 url 地址,或者是有 m3u8 地址的页面 url 地址,通过 urltype 指定 url 地址类型。  
 
 `--urltype`  
-url类型，默认为url。m3u8:  m3u8文件url地址;url:  包含m3u8文件地址的普通url地址  
+url 类型，默认为 url。
+- m3u8: 指定 url 为 m3u8 地址; 
+- url: 指定 url 为有 m3u8 的页面 url 地址；  
 
-`--phantomjs`  
-phantomjs可执行文件地址，默认"/usr/bin/phantomjs"  
-
-`--ffmpeg`  
-ffmpeg可执行文件地址，默认"/usr/bin/ffmpeg"  
+`--loadpage`  
+Puppeteer 脚本，默认"loadpage.js"
 
 `--help, -h`  
 show help  
@@ -35,10 +38,7 @@ show help
 print the version  
 
 ## 示例  
-`./FetchM3u8 --url "http://weibo.com/p/134132432132413241" --phantomjs /home/svr/phantomjs/bin/phantomjs --ffmpeg /home/svr/ffmpeg/bin/ffmpeg`  
-
-# 鸣谢
-感谢@jemygraw在Go友团分享的代码，地址：[http://golanghome.com/post/645](http://golanghome.com/post/645)
+`./fetch-m3u8-video --url "https://www.cxtvlive.com/live-tv/canal-once"
 
 # 许可
 Licensed under the MIT license
