@@ -15,7 +15,7 @@ import (
 
 // 从普通页面获取m3u8地址
 func GetM3u8Url(Url string) (m3u8Url string) {
-	cmd := exec.Command(config.Phantomjs, config.LoadPageJS, Url)
+	cmd := exec.Command("node", config.LoadPageJS, Url)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -26,6 +26,9 @@ func GetM3u8Url(Url string) (m3u8Url string) {
 		reg := regexp.MustCompile(`(url:).*`)
 		urlStr := reg.FindString(out.String())
 		size := len(urlStr)
+        if (size <= 4){
+            return
+        }
 		rawUrl, err := url.QueryUnescape(urlStr[4 : size-1])
 		if err != nil {
 			fmt.Println(nil)

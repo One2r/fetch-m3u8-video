@@ -44,7 +44,7 @@ func main() {
 
 		if c.String("url") == "" {
 			fmt.Println("请输入url地址!")
-			os.Exit(1)
+			return
 		}
 
         if c.String("urltype") == "url" {
@@ -54,14 +54,16 @@ func main() {
 		file, _ := exec.LookPath(os.Args[0])
 		path, _ := filepath.Abs(file)
 
-		config.Output = filepath.Dir(path) + "/downloads/" + c.String("o")
+		config.Output = filepath.Dir(path) + "/downloads/" + c.String("out")
 		config.LoadPageJS = filepath.Dir(path) + "/scripts/loadpage.js"
 		config.Tmp = filepath.Dir(path) + "/downloads/tmp/"
+
+        defer utils.DoClean()
 
 		err := os.Mkdir(filepath.Dir(path)+"/downloads/tmp/", 0755)
 		if err != nil {
 			fmt.Println("创建临时文件目录失败，", err)
-			os.Exit(1)
+			return
 		}
 
 		config.Ffmpeginputs = filepath.Dir(path) + "/downloads/tmp/inputs.txt"
@@ -80,9 +82,13 @@ func main() {
 			m3u8Ct = fetch.GetM3u8Content(Url)
 		} else {
 			m3u8Url := fetch.GetM3u8Url(Url)
+            if m3u8Url == "" {
+                fmt.Println("未获取到 m3u8 地址")
+                return
+            }
 			m3u8Ct = fetch.GetM3u8Content(m3u8Url)
 		}
-
+        fmt.Println(m3u8Ct)
 		if m3u8Ct != "" {
 			utils.ParseM3u8(m3u8Ct)
 			chs := make([]chan int, len(config.VList))
@@ -97,11 +103,11 @@ func main() {
 			}
 		} else {
 			fmt.Println("获取m3u8文件索引失败！")
-			os.Exit(1)
+			return
 		}
 
 		utils.Concat()
-		utils.DoClean()
+		
 
 		fmt.Println("Result:", c.String("o"))
 	}
