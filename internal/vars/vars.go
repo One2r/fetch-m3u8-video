@@ -1,17 +1,11 @@
-package config
+package vars
 
 import (
 	"net/url"
 )
 
-//视频输出文件
-var Output string = ""
-
-//phantomjs可执行文件地址
-var Phantomjs string = ""
-
-//ffmpeg可执行文件地址
-var Ffmpeg string = ""
+//视频输出目录
+var OutputDir string = ""
 
 //phantomjs执行js脚本，用于加载普通页面获取m3u8地址
 var LoadPageJS string = ""
@@ -23,7 +17,7 @@ var M3u8Url *url.URL
 var VList map[string]string
 
 //临时视频目录
-var Tmp string = ""
+var TmpDir string = ""
 
 //ffmpeg合并输入文件地址
-var Ffmpeginputs = ""
+var FfmpeginputsFile = ""

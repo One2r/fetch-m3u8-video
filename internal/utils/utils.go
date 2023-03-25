@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	config "fetch-m3u8-video/internal/configs"
+    "fetch-m3u8-video/internal/vars"
 )
 
 // 检测是否安装 ffmpeg
@@ -31,7 +31,7 @@ func CheckNodejs() {
 
 // 解析m3u8文件
 func ParseM3u8(m3u8Content string) {
-	config.VList = make(map[string]string)
+	vars.VList = make(map[string]string)
 	sReader := strings.NewReader(m3u8Content)
 	bReader := bufio.NewScanner(sReader)
 	bReader.Split(bufio.ScanLines)
@@ -40,16 +40,16 @@ func ParseM3u8(m3u8Content string) {
 		line := bReader.Text()
 		if !strings.HasPrefix(line, "#") {
 			writIntoInputs(line)
-			config.VList[line] = config.M3u8Url.Scheme + "://" + config.M3u8Url.Host + "/" + line
+			vars.VList[line] = vars.M3u8Url.Scheme + "://" + vars.M3u8Url.Host + "/" + line
 		}
 	}
 }
 
 // 写入ffmpeg合并输入文件
 func writIntoInputs(filename string) {
-	tsFp, openErr := os.OpenFile(config.Ffmpeginputs, os.O_WRONLY|os.O_APPEND, 0775)
+	tsFp, openErr := os.OpenFile(vars.FfmpeginputsFile, os.O_WRONLY|os.O_APPEND, 0775)
 	if openErr != nil {
-		fmt.Println("open local file", config.Ffmpeginputs, "failed,", openErr)
+		fmt.Println("open local file", vars.FfmpeginputsFile, "failed,", openErr)
 		return
 	}
 	defer tsFp.Close()
@@ -58,7 +58,7 @@ func writIntoInputs(filename string) {
 
 // 合并视频
 func Concat() {
-	cmd := exec.Command(config.Ffmpeg, "-f", "concat", "-i", config.Ffmpeginputs, "-c", "copy", config.Output)
+	cmd := exec.Command("ffmpeg", "-f", "concat", "-i", vars.FfmpeginputsFile, "-c", "copy", vars.OutputDir)
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println("合并视频失败，", err)
@@ -72,7 +72,7 @@ func Concat() {
 func DoClean() {
 	fmt.Println("清理垃圾文件...")
 
-	err := os.RemoveAll(config.Tmp)
+	err := os.RemoveAll(vars.TmpDir)
 	if err != nil {
 		fmt.Printf("删除垃圾文件失败，%s", err)
 	}

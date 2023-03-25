@@ -10,12 +10,12 @@ import (
 
 	"github.com/go-resty/resty/v2"
 
-	config "fetch-m3u8-video/internal/configs"
+    "fetch-m3u8-video/internal/vars"
 )
 
 // 从普通页面获取m3u8地址
 func GetM3u8Url(Url string) (m3u8Url string) {
-	cmd := exec.Command("node", config.LoadPageJS, Url)
+	cmd := exec.Command("node", vars.LoadPageJS, Url)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -34,7 +34,7 @@ func GetM3u8Url(Url string) (m3u8Url string) {
 			fmt.Println(nil)
 			return
 		} else {
-			config.M3u8Url, _ = url.Parse(rawUrl)
+			vars.M3u8Url, _ = url.Parse(rawUrl)
 			m3u8Url = rawUrl
 		}
 	}
@@ -43,6 +43,7 @@ func GetM3u8Url(Url string) (m3u8Url string) {
 
 // 获取m3u8地址获取视频列表
 func GetM3u8Content(m3u8Url string) (m3u8 string) {
+    vars.M3u8Url, _ = url.Parse(m3u8Url)
 	client := resty.New()
 	client.SetTimeout(15 * time.Second)
 	resp, respErr := client.R().Get(m3u8Url)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/urfave/cli"
 
-	config "fetch-m3u8-video/internal/configs"
+    "fetch-m3u8-video/internal/vars"
 	"fetch-m3u8-video/internal/fetch"
 	"fetch-m3u8-video/internal/utils"
 )
@@ -37,6 +37,11 @@ func main() {
 			Value: "YourVideo.avi",
 			Usage: "输出文件,默认在 downloads 目录下",
 		},
+        cli.StringFlag{
+			Name:  "loadpage",
+			Value: "loadpage.js",
+			Usage: "Puppeteer 脚本",
+		},
 	}
 
 	app.Action = func(c *cli.Context) {
@@ -54,21 +59,21 @@ func main() {
 		file, _ := exec.LookPath(os.Args[0])
 		path, _ := filepath.Abs(file)
 
-		config.Output = filepath.Dir(path) + "/downloads/" + c.String("out")
-		config.LoadPageJS = filepath.Dir(path) + "/scripts/loadpage.js"
-		config.Tmp = filepath.Dir(path) + "/downloads/tmp/"
+		vars.OutputDir = filepath.Dir(path) + "/downloads/" + c.String("out")
+		vars.LoadPageJS = filepath.Dir(path) + "/scripts/" +c.String("loadpage")
+		vars.TmpDir = filepath.Dir(path) + "/downloads/tmp/"
 
 		defer utils.DoClean()
 
-		err := os.Mkdir(filepath.Dir(path)+"/downloads/tmp/", 0755)
+		err := os.Mkdir(vars.TmpDir, 0755)
 		if err != nil {
 			fmt.Println("创建临时文件目录失败，", err)
 			return
 		}
 
-		config.Ffmpeginputs = filepath.Dir(path) + "/downloads/tmp/inputs.txt"
+		vars.FfmpeginputsFile = filepath.Dir(path) + "/downloads/tmp/inputs.txt"
 
-		ffmpegInputs, err := os.Create(config.Ffmpeginputs)
+		ffmpegInputs, err := os.Create(vars.FfmpeginputsFile)
 		defer ffmpegInputs.Close()
 		if err != nil {
 			fmt.Println("创建文件失败,", err)
@@ -88,14 +93,14 @@ func main() {
 			}
 			m3u8Ct = fetch.GetM3u8Content(m3u8Url)
 		}
-		fmt.Println(m3u8Ct)
+		
 		if m3u8Ct != "" {
 			utils.ParseM3u8(m3u8Ct)
-			chs := make([]chan int, len(config.VList))
+			chs := make([]chan int, len(vars.VList))
 			i := 0
-			for k, v := range config.VList {
+			for k, v := range vars.VList {
 				chs[i] = make(chan int)
-				go fetch.Download(v, config.Tmp+k, chs[i])
+				go fetch.Download(v, vars.TmpDir+k, chs[i])
 				i++
 			}
 			for _, ch := range chs {
