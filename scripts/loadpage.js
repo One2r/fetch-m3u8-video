@@ -24,6 +24,6 @@ var url = process.argv[2];
     }
     return m3u8_list;
   });
-  console.log(m3u8_list);
+  console.log(JSON.stringify(m3u8_list));
   await browser.close();
 })();

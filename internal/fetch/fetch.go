@@ -1,61 +1,73 @@
 package fetch
 
 import (
-	"bytes"
-	"fmt"
-	"net/url"
-	"os/exec"
-	"regexp"
-	"time"
+    "bufio"
+    "encoding/json"
+    "fmt"
+    "net/url"
+    "os/exec"
+    "strings"
+    "time"
 
-	"github.com/go-resty/resty/v2"
+    resty "github.com/go-resty/resty/v2"
 
     "fetch-m3u8-video/internal/vars"
 )
 
-// 从普通页面获取m3u8地址
-func GetM3u8Url(Url string) (m3u8Url string) {
+// GetM3u8Url 从普通页面获取m3u8地址
+func GetM3u8Url(Url string) (m3u8Urls []string) {
 	cmd := exec.Command("node", vars.LoadPageJS, Url)
-	var out bytes.Buffer
+	var out strings.Builder
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
 		return
 	} else {
-		reg := regexp.MustCompile(`(url:).*`)
-		urlStr := reg.FindString(out.String())
-		size := len(urlStr)
-        if (size <= 4){
+        err:=json.Unmarshal([]byte(out.String()),&m3u8Urls)
+        if err != nil {
+            fmt.Println("解析json数据错误：",err)
             return
         }
-		rawUrl, err := url.QueryUnescape(urlStr[4 : size-1])
-		if err != nil {
-			fmt.Println(nil)
-			return
-		} else {
-			vars.M3u8Url, _ = url.Parse(rawUrl)
-			m3u8Url = rawUrl
-		}
 	}
-	return m3u8Url
+	return m3u8Urls
 }
 
-// 获取m3u8地址获取视频列表
-func GetM3u8Content(m3u8Url string) (m3u8 string) {
-    vars.M3u8Url, _ = url.Parse(m3u8Url)
+// GetM3u8Content 获取m3u8地址获取视频列表
+func GetM3u8Content(url *url.URL) (vList []string) {
+    fmt.Println(url.String())
 	client := resty.New()
 	client.SetTimeout(15 * time.Second)
-	resp, respErr := client.R().Get(m3u8Url)
+	resp, respErr := client.R().Get(url.String())
 	if respErr != nil {
 		fmt.Println("fetch m3u8 playlist error,", respErr)
 		return
 	}
-	m3u8 = resp.String()
-	return m3u8
+    content := resp.String()
+    sReader := strings.NewReader(content)
+    bReader := bufio.NewScanner(sReader)
+    bReader.Split(bufio.ScanLines)
+    for bReader.Scan() {
+        line := bReader.Text()
+        if !strings.HasPrefix(line, "#") {
+            var tsUrl string
+            if strings.HasPrefix("http",line) {
+                tsUrl = line
+            }else{
+                tsUrl = url.Scheme + "://" + url.Host + url.Path[0:strings.LastIndex(url.Path,"/")+1]+line
+            }
+            if strings.Contains(line,".m3u8"){
+                newM3u8Url, _ := url.Parse(tsUrl)
+                vList = append(vList,GetM3u8Content(newM3u8Url)...)
+            }else{
+                vList = append(vList,tsUrl)
+            }
+        }
+    }
+	return vList
 }
 
-// 视频下载
+// Download 视频下载
 func Download(url string, fileName string, ch chan int) {
 	client := resty.New()
 	client.SetTimeout(60 * time.Second * 30)

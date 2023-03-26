@@ -16,9 +16,7 @@ make build-win
 - Puppeteer   
 
 # 用法  
-## 指令
-`-out`  
-输出文件,默认在Downloads目录下，默认"YourVideo.avi"  
+## 指令 
 
 `--url`  
 m3u8 文件 url 地址,或者是有 m3u8 地址的页面 url 地址,通过 urltype 指定 url 地址类型。  
@@ -38,7 +36,7 @@ show help
 print the version  
 
 ## 示例  
-`./fetch-m3u8-video --url "https://www.cxtvlive.com/live-tv/canal-once"
+`./fetch-m3u8-video --url "https://www.cxtvlive.com/live-tv/canal-once"`
 
 # 许可
 Licensed under the MIT license
