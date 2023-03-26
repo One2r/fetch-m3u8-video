@@ -43,6 +43,9 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) {
+        file, _ := exec.LookPath(os.Args[0])
+        path, _ := filepath.Abs(file)
+
 		utils.CheckFfmpeg()
 
 		if c.String("url") == "" {
@@ -52,12 +55,8 @@ func main() {
 
 		if c.String("urltype") == "url" {
 			utils.CheckNodejs()
+            vars.LoadPageJS = filepath.Dir(path) + "/scripts/" + c.String("loadpage")
 		}
-
-		file, _ := exec.LookPath(os.Args[0])
-		path, _ := filepath.Abs(file)
-
-		vars.LoadPageJS = filepath.Dir(path) + "/scripts/" + c.String("loadpage")
 
 		var m3u8List []string
 
@@ -78,7 +77,7 @@ func main() {
 		var downloadDirPrefix = filepath.Dir(path) + "/downloads/"
 		for _, m3u8 := range m3u8List {
 			m3u8Url, _ := url.Parse(m3u8)
-			fmt.Println("下载：", m3u8Url.String(), " 地址视频：")
+			fmt.Println("下载：", m3u8Url.String(), " 地址视频...")
 
 			downloadDir := downloadDirPrefix + strings.ReplaceAll(m3u8Url.Hostname(), ".", "_")
 			_, err := os.Stat(downloadDir)
@@ -114,7 +113,7 @@ func main() {
 
 			vList := fetch.GetM3u8Content(m3u8Url)
 			if vList != nil {
-				ffmpeginputsFile := downloadDir + "/inputs.txt"
+				ffmpeginputsFile := tmpDir + "/inputs.txt"
 				ffmpegInputs, err := os.OpenFile(ffmpeginputsFile, os.O_RDWR|os.O_CREATE, 0755)
 				if err != nil {
 					fmt.Println("创建 ffmpeg 输入失败,", err)
@@ -137,6 +136,8 @@ func main() {
 				ffmpegInputs.Close()
 				outputFile := downloadDir + "/video.mp4"
 				utils.Concat(ffmpeginputsFile, outputFile)
+
+                utils.DoClean(tmpDir)
 			} else {
 				fmt.Println("获取m3u8文件索引失败！")
 				return

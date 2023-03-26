@@ -1,12 +1,10 @@
 package utils
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"os/exec"
-
-    "fetch-m3u8-video/internal/vars"
+    "fmt"
+    "log"
+    "os"
+    "os/exec"
 )
 
 // CheckFfmpeg 检测是否安装 ffmpeg
@@ -40,10 +38,10 @@ func Concat(input string, output string) {
 }
 
 // DoClean 清理垃圾文件
-func DoClean() {
+func DoClean(tmpDir string) {
 	fmt.Println("清理垃圾文件...")
 
-	err := os.RemoveAll(vars.TmpDir)
+	err := os.RemoveAll(tmpDir)
 	if err != nil {
 		fmt.Printf("删除垃圾文件失败，%s", err)
 	}
